@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "string_bonds"
+version = "0.1.0"
+description = ""
+authors = ["Fergus Barratt <fergus.barratt00@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.8, <3.10"
+numpy = "^1.20.3"
+xmps = {git = "https://github.com/fergusbarratt/xmps.git"}
+qmps = {git = "https://github.com/fergusbarratt/qmps_tools.git"}
+tqdm = "^4.61.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
