@@ -9,7 +9,10 @@ python = ">=3.8, <3.10"
 numpy = "^1.20.3"
 xmps = {git = "https://github.com/fergusbarratt/xmps.git"}
 qmps = {git = "https://github.com/fergusbarratt/qmps_tools.git"}
+minimizer = {git = "https://github.com/fergusbarratt/minimizer.git"}
 tqdm = "^4.61.1"
+pytest = "^6.2.4"
+matplotlib = "^3.4.2"
 
 [tool.poetry.dev-dependencies]
 
