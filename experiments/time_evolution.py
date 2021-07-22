@@ -43,8 +43,6 @@ def objx(p, p_, U, Wx=Ux):
         np.trace(ρx @ ρx) + np.trace(σx @ σx) - 2 * np.real(np.trace(ρx @ σx))
     )
 
-itebd_objx(np.random.randn(30), np.random.randn(30), U_full, Ux)
-raise Exception
 
 def energy(p, U):
     p1, p2 = np.split(p, 2)
@@ -114,9 +112,9 @@ def time_evolve(p0, N, dt, U, ops=[X, Y, Z], get_energy=True):
 depths = [8]
 N = 10
 for depth in depths:
-    #p0 = np.concatenate([np.zeros(15), np.random.randn(15)])#np.random.randn(30)
+    # p0 = np.concatenate([np.zeros(15), np.random.randn(15)])#np.random.randn(30)
     p0 = np.random.randn(30)
-    #p0 = np.random.randn(4 * depth)
+    # p0 = np.random.randn(4 * depth)
     p, evs, energies = time_evolve(p0, N, dt, lambda Jhs: U_full(Jhs))
     fig, ax = plt.subplots(2, 1, sharex=True)
     ax[0].plot(evs)
