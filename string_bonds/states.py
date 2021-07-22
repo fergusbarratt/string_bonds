@@ -151,7 +151,7 @@ class StringBondState:
         )
 
     def E2x(self, op):
-        """Two site expectation values in the y directon
+        """Two site expectation values in the x direction
 
         Args:
             op: op to get the expectation value of.
@@ -161,6 +161,8 @@ class StringBondState:
             e1
         )  # centre gauge tensor (drop the 1 index)
 
+        # this is confusing: this is not self.U1, but rather the first unitary in the diagram,
+        # which doesn't have an environment tensor contracted into it
         U1 = self.U2  # First unitary (drop the 2 index)
         U1_conj = tools.cT(U1)
 
@@ -227,10 +229,122 @@ class StringBondState:
             )
         )
 
-    def energy(self, op):
+    def rhox(self):
+        """rhox: 2x1 density matrix"""
+        e1, e2 = self.e1, self.e2
+        A = tools.unitary_to_tensor(self.U1) @ cholesky(
+            e1
+        )  # centre gauge tensor (drop the 1 index
+
+        # this is confusing: this is not self.U1, but rather the first unitary in the diagram,
+        # which doesn't have an environment tensor contracted into it
+        U1 = self.U2  # First unitary (drop the 2 index)
+        U1_conj = tools.cT(U1)
+
+        U2 = self.U2 @ np.kron(np.eye(2), cholesky(e2))  # centre gauge tensor (unitary)
+        U2_conj = tools.cT(U2)
+
+        half = ncon(
+            [U1.reshape(2, 2, 2, 2), U2.reshape(2, 2, 2, 2), A, A],
+            [[-3, -1, 1, 2], [2, -2, 3, -4], [1, -7, -8], [3, -5, -6]],
+        )
+        return ncon(
+            [half, half.conj()],
+            [[-1, -2, 1, 2, 3, 4, 5, 6], [-3, -4, 1, 2, 3, 4, 5, 6]],
+        ).reshape(4, 4)
+
+    def thetax(self, Ux):
+        """State with x unitary applied
+        """
+        e1, e2 = self.e1, self.e2
+        A = tools.unitary_to_tensor(self.U1) @ cholesky(
+            e1
+        )  # centre gauge tensor (drop the 1 index)
+
+        # this is confusing: this is not self.U1 (which becomes A),
+        # but rather the first unitary in the diagram,
+        # which doesn't have an environment tensor contracted into it
+        U1 = self.U2  # First unitary (drop the 2 index)
+        U1_conj = tools.cT(U1)
+
+        U2 = self.U2 @ np.kron(np.eye(2), cholesky(e2))  # centre gauge tensor (unitary)
+        U2_conj = tools.cT(U2)
+
+        return ncon(
+                [
+                    U1.reshape(2, 2, 2, 2),
+                    U2.reshape(2, 2, 2, 2),
+                    A,
+                    A,
+                    Ux.reshape(2, 2, 2, 2),
+                ],
+                [
+                        [-2, 1, 4,  3],
+                        [3, 2, 5, -6], 
+                        [4, -3, -4], 
+                        [5, -7, -8],
+                        [-1, -5, 1, 2]
+                ],
+            )
+
+    def thetay(self, Uy):
+        """State with y unitary applied
+
+        Args:
+            op: op to get the ev of.
+        """
+        e1, e2, e3 = self.e1, self.e2, self.e3
+        A1 = tools.unitary_to_tensor(self.U1)
+
+        AA = merge(A1, A1)
+        e1_half = cholesky(e1)
+        AA = AA @ e1_half  # make the (doubled) centre outer gauge tensor
+
+        U_ = self.U2.reshape(2, 2, 2, 2)
+        # doubled centre gauge inner tensor
+        UU = ncon([U_, U_], [[-1, -3, -5, -7], [-2, -4, -6, -8]]).reshape(
+            16, 16
+        ) @ np.kron(np.eye(4), cholesky(e3))
+
+        UU_conj = tools.cT(UU)
+        return ncon(
+                [
+                    UU.reshape(4, 4, 4, 4),
+                    Uy.reshape(2, 2, 4),
+                    AA,
+                ],
+                [
+                    [-3, 2, 3, -4],
+                    [-1, -2, 2],
+                    [3, -5, -6]
+                    ]
+            )
+
+
+    def rhoy(self):
+        """rhoy: 1x2 density matrix"""
+        e1, e2, e3 = self.e1, self.e2, self.e3
+        A1 = tools.unitary_to_tensor(self.U1)
+
+        AA = merge(A1, A1)
+        e1_half = cholesky(e1)
+        AA = AA @ e1_half  # make the (doubled) centre outer gauge tensor
+
+        U_ = self.U2.reshape(2, 2, 2, 2)
+        # doubled centre gauge inner tensor
+        UU = ncon([U_, U_], [[-1, -3, -5, -7], [-2, -4, -6, -8]]).reshape(
+            16, 16
+        ) @ np.kron(np.eye(4), cholesky(e3))
+
+        UU_conj = tools.cT(UU)
+        half = ncon([UU.reshape(4, 4, 4, 4), AA], [[-2, -1, 1, -3], [1, -4, -5]])
+        return ncon([half, half.conj()], [[-1, 1, 2, 3, 4], [-2, 1, 2, 3, 4]])
+
+    def energy(self, opx, opy=None):
         """Energy (density). Measure the expectation value of a two site operator in the x and y directions and add (/2)
 
         Args:
             op: The local (two site) hamiltonian
         """
-        return (self.E2x(op) + self.E2y(op)) / 2
+        opy = opx if opy is None else opy
+        return (self.E2x(opx) + self.E2y(opy)) / 2

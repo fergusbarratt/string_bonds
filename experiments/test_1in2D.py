@@ -41,7 +41,7 @@ exacts = []
 for λ in λs:
     h = Hamiltonian({"ZZ": -1, "X": λ}).to_matrices(2)[0]
     ress = []
-    exacts.append(find_ground_state(h, 2, noisy=True)[1][-1])
+    exacts.append(find_ground_state(h, 2, noisy=True, tol=1e-5)[1][-1])
 
     for i, depth in enumerate(depths):
         best = None
@@ -68,7 +68,7 @@ plt.ylabel("energy density")
 plt.title(f"TFIM energy density")
 plt.legend()
 
-plt.savefig("figs/energies.pdf")
+plt.savefig("figs/energies_match.pdf")
 np.save('data/exacts', np.array(exacts))
 np.save('data/1d', np.array(traces))
 
