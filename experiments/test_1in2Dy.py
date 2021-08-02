@@ -14,7 +14,7 @@ def obj(p, U, h):
     p1, p2 = np.split(p, 2)
     U1, U2 = U(p1), U(p2)
     state = StringBondState(U1, U2)
-    return state.energy(h, opy=np.eye(4)) * 2 - 1
+    return state.energy(np.eye(4), opy=h) * 2 - 1
 
 
 def take_monotonic(X):
