@@ -16,7 +16,7 @@ hy = Hamiltonian({"ZZ": -1, "Z": 1}).to_matrices(2)[0]
 
 dt = 1e-2
 Ux = expm(-1j * dt * hx)
-Uy = expm(-1j * dt * hy)
+Uy = expm(-1j * 0 * dt * hy)
 
 
 def obj_localx(p, p_, U, Wx=Ux):
@@ -154,29 +154,30 @@ def time_evolve(p0, N, dt, U, ops=[X, Y, Z], get_energy=True, mode="TEBD"):
         if ops:
             evs.append([ev(p, U, op) for op in ops])
 
-        new_objx = lambda p_new: obj_localx(p, p_new, U)
-        new_objy = lambda p_new: obj_localy(p, p_new, U)
+        new_objx = lambda p_new: objx(p, p_new, U)
+        new_objy = lambda p_new: objy(p, p_new, U)
         resx = Minimize(new_objx, p)
         resy = Minimize(new_objy, resx.res.x)
         p = resy.res.x
     return p, np.array(evs), np.array(energies)
 
 
-depths = [8]
 N = 1000
 T = [k*dt for k in range(N)]
-for depth in depths:
-    # p0 = np.concatenate([np.zeros(15), np.random.randn(15)])#np.random.randn(30)
-    p0 = np.random.randn(30)
-    # p0 = np.random.randn(4 * depth)
-    p, evs, energies = time_evolve(p0, N, dt, lambda Jhs: U_full(Jhs), mode="TEBD")
-    fig, ax = plt.subplots(2, 1, sharex=True)
-    ax[0].plot(T, evs)
-    ax[1].plot(T, energies)
-    ax[1].set_xlabel("t")
+p0 = np.random.randn(30) * 1e-4
+mode="TEBD"
+print(f"Time evolution, {T[-1]}, {N} timesteps, mode {mode}")
 
-    ax[0].set_ylabel("$\\langle X\\rangle$")
-    ax[1].set_ylabel("$\\langle H\\rangle$")
-    plt.tight_layout()
-    plt.savefig("figs/time_evolution.pdf")
-    np.save('energies', energies)
+p, evs, energies = time_evolve(p0, N, dt, lambda Jhs: U_full(Jhs), mode=mode)
+
+fig, ax = plt.subplots(2, 1, sharex=True)
+ax[0].plot(T, evs)
+ax[1].plot(T, energies)
+ax[1].set_xlabel("t")
+
+ax[0].set_ylabel("$\\langle \\sigma \\rangle$")
+ax[1].set_ylabel("$\\langle H\\rangle$")
+plt.tight_layout()
+plt.savefig("../figs/1d_time_evolution_tebd.pdf")
+np.save('../data/1d_energies_tebd', energies)
+np.save('../data/1d_evs_tebd', evs)

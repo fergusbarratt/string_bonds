@@ -254,8 +254,7 @@ class StringBondState:
         ).reshape(4, 4)
 
     def thetax(self, Ux):
-        """State with x unitary applied
-        """
+        """State with x unitary applied"""
         e1, e2 = self.e1, self.e2
         A = tools.unitary_to_tensor(self.U1) @ cholesky(
             e1
@@ -271,21 +270,15 @@ class StringBondState:
         U2_conj = tools.cT(U2)
 
         return ncon(
-                [
-                    U1.reshape(2, 2, 2, 2),
-                    U2.reshape(2, 2, 2, 2),
-                    A,
-                    A,
-                    Ux.reshape(2, 2, 2, 2),
-                ],
-                [
-                        [-2, 1, 4,  3],
-                        [3, 2, 5, -6], 
-                        [4, -3, -4], 
-                        [5, -7, -8],
-                        [-1, -5, 1, 2]
-                ],
-            )
+            [
+                U1.reshape(2, 2, 2, 2),
+                U2.reshape(2, 2, 2, 2),
+                A,
+                A,
+                Ux.reshape(2, 2, 2, 2),
+            ],
+            [[-2, 1, 4, 3], [3, 2, 5, -6], [4, -3, -4], [5, -7, -8], [-1, -5, 1, 2]],
+        )
 
     def thetay(self, Uy):
         """State with y unitary applied
@@ -308,18 +301,13 @@ class StringBondState:
 
         UU_conj = tools.cT(UU)
         return ncon(
-                [
-                    UU.reshape(4, 4, 4, 4),
-                    Uy.reshape(2, 2, 4),
-                    AA,
-                ],
-                [
-                    [-3, 2, 3, -4],
-                    [-1, -2, 2],
-                    [3, -5, -6]
-                    ]
-            )
-
+            [
+                UU.reshape(4, 4, 4, 4),
+                Uy.reshape(2, 2, 4),
+                AA,
+            ],
+            [[-3, 2, 3, -4], [-1, -2, 2], [3, -5, -6]],
+        )
 
     def rhoy(self):
         """rhoy: 1x2 density matrix"""
@@ -348,3 +336,71 @@ class StringBondState:
         """
         opy = opx if opy is None else opy
         return (self.E2x(opx) + self.E2y(opy)) / 2
+
+
+class MatrixProductState:
+    """
+    Matrix product state, with same methods as string bond state. For testing.
+    """
+
+    def __init__(self, U):
+        """Create a matrix product state
+
+        Args:
+            U: The unitary
+        """
+        self.U = U
+        self.mps = iMPS([tools.unitary_to_tensor(U)])
+
+    def set_environments(self):
+        """Matrix Product States need one environment.
+        This function sets it.
+        """
+        self._e = self.get_e()
+
+    def get_e(self):
+        A = tools.unitary_to_tensor(self.U)
+        η, e = Map(A, A).right_fixed_point()  # first environment.
+        e = e / np.trace(e)  # renormalise
+        return e
+
+    @property
+    def e(self):
+        if not hasattr(self, "_e"):
+            self.set_environments()
+        return self._e
+
+    @e.setter
+    def e(self, x):
+        self._e = x
+
+    def E(self, op):
+        """Expectation value of a 1 site operator
+
+        Args:
+            op:
+        """
+        return self.mps.E(op)
+
+    def E2(self, op):
+        """Two site expectation values.
+
+        Args:
+            op: op to get the expectation value of.
+        """
+        return self.mps.energy([op])
+
+    def rho(self):
+        """rhox: 2x1 density matrix"""
+        A = self.mps[0]
+        AA = merge(A, A)
+        e = self.e
+        return ncon([AA, e, AA.conj()], [[-1, 1, 2], [2, 4], [-2, 1, 4]])
+
+    def energy(self, op):
+        """Energy (density)
+
+        Args:
+            op: The local (two site) hamiltonian
+        """
+        return self.E2(op)

@@ -10,13 +10,11 @@ import matplotlib.pyplot as plt
 plt.style.use("seaborn-whitegrid")
 
 
-
-
 def obj(p, U, h):
     p1, p2 = np.split(p, 2)
     U1, U2 = U(p1), U(p2)
     state = StringBondState(U1, U2)
-    return state.energy(h, opy=np.eye(4))*2-1
+    return state.energy(h, opy=np.eye(4)) * 2 - 1
 
 
 def take_monotonic(X):
@@ -33,7 +31,7 @@ def pad_p(p, new_size):
     return np.concatenate([np.pad(p1, (0, pad_width)), np.pad(p2, (0, pad_width))])
 
 
-depths = [25]#[1, 3, 5, 7, 9, 11, 13]
+depths = [25]  # [1, 3, 5, 7, 9, 11, 13]
 tries = 5
 λs = np.linspace(0.1, 1.4, 10)
 traces = []
@@ -52,15 +50,15 @@ for λ in λs:
                 if best is None or res.res.fun < best.res.fun:
                     best = res
             except np.linalg.LinAlgError:
-                print('linalg error')
+                print("linalg error")
 
         xs = take_monotonic(best.last_stored_results)
         ress.append(xs[-1])
     traces.append(ress)
 
 for i, trace in enumerate(np.array(traces).T):
-    plt.plot(λs, trace, label=f'1in2d', marker='x')
-plt.plot(λs, np.array(exacts), marker='x', label='mps')
+    plt.plot(λs, trace, label=f"1in2d", marker="x")
+plt.plot(λs, np.array(exacts), marker="x", label="mps")
 
 
 plt.xlabel("$\lambda$")
@@ -68,7 +66,6 @@ plt.ylabel("energy density")
 plt.title(f"TFIM energy density")
 plt.legend()
 
-plt.savefig("figs/energies.pdf")
-np.save('data/exacts', np.array(exacts))
-np.save('data/1d', np.array(traces))
-
+plt.savefig("../figs/tfim_energies.pdf")
+np.save("../data/tfim_exacts", np.array(exacts))
+np.save("../data/tfim_1d_tebd", np.array(traces))
