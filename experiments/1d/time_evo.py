@@ -8,6 +8,7 @@ from ansatze import U_full as U
 from ansatze import *
 from scipy.linalg import expm
 import matplotlib.pyplot as plt
+import tqdm 
 plt.style.use("seaborn-whitegrid")
 
 np.random.seed(500)
@@ -22,7 +23,7 @@ mps = MatrixProductState(U(p))
 
 h = Hamiltonian({"ZZ": -1, "Z": 1}).to_matrices(2)[0]
 
-dt = 1e-2
+dt = 1e-3
 U = expm(-1j * dt * h)
 
 def obj_local(p, p_, U, W=U):
@@ -66,14 +67,14 @@ def time_evolve(p0, N, dt, U, ops=[X, Y, Z], get_energy=True):
     energies = []
     evs = []
     obj = obj_local
-    for _ in range(N):
+    for _ in tqdm.tqdm(range(N)):
         if get_energy:
             energies.append(energy(p, U))
         if ops:
             evs.append([ev(p, U, op) for op in ops])
 
         new_obj = lambda p_new: obj(p, p_new, U)
-        res = Minimize(new_obj, p)
+        res = Minimize(new_obj, p, tol=1e-8)
         p = res.res.x
     return p, np.array(evs), np.array(energies)
 
@@ -92,6 +93,6 @@ ax[1].set_xlabel("t")
 ax[0].set_ylabel("$\\langle \\sigma \\rangle$")
 ax[1].set_ylabel("$\\langle H\\rangle$")
 plt.tight_layout()
-plt.savefig("figs/1d_time_evolution_local.pdf")
+plt.savefig("experiments/1d/figs/1d_time_evolution_local_shorter1e3.pdf")
 np.save('data/1d_energies_local', energies)
 np.save('data/1d_evs_local', evs)
