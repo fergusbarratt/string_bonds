@@ -391,7 +391,7 @@ class MatrixProductState:
         return self.mps.energy([op])
 
     def rho(self):
-        """rhox: 2x1 density matrix"""
+        """rhox: 4x4 density matrix"""
         A = self.mps[0]
         AA = merge(A, A)
         e = self.e
